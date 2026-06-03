@@ -1,14 +1,22 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "sovereign-compass",
-  "compatibility_date": "2026-06-03",
-  "observability": {
-    "enabled": true
-  },
-  "assets": {
-    "directory": "."
-  },
-  "compatibility_flags": [
-    "nodejs_compat"
-  ]
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "sovereign-compass",
+	"compatibility_date": "2026-06-03",
+	"observability": {
+		"enabled": true
+	},
+	"assets": {
+		"directory": "."
+	},
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"d1_databases": [
+		{
+			"binding": "sovereign_compass_db",
+			"database_name": "sovereign-compass-db",
+			"database_id": "4bcce9dc-389b-445c-a1bb-6cac110a7b64",
+			"remote": true
+		}
+	]
 }
