@@ -1,7 +1,7 @@
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    
+
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
@@ -12,14 +12,20 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // Simple test endpoint
+    // === SERVE THE MAIN FRONTEND ===
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+      return new Response(HTML, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' }
+      });
+    }
+
+    // === API ENDPOINTS ===
     if (url.pathname === '/test') {
       return new Response(JSON.stringify({ status: 'ok' }), {
         headers: { 'Content-Type': 'application/json', ...corsHeaders }
       });
     }
 
-    // Your API endpoint
     if (url.pathname === '/api/log' && request.method === 'POST') {
       try {
         const data = await request.json();
@@ -38,9 +44,8 @@ export default {
           data.narrative || null,
           data.intensity || 3
         ).run();
-        
+
         return new Response(JSON.stringify({ success: true }), {
-          status: 200,
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
       } catch (err) {
@@ -54,3 +59,996 @@ export default {
     return new Response('Not found', { status: 404, headers: corsHeaders });
   }
 };
+
+// ==================== EMBEDDED INDEX.HTML ====================
+const HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover, maximum-scale=1.0">
+  <title>Sovereign Compass · let your emotion work for you</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+      background: #0C0F12;
+      background-image: radial-gradient(circle at 30% 10%, #1A1E24 0%, #070A0D 90%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 20px 40px;
+      margin: 0;
+      color: #C0C5CB;
+      min-height: 100vh;
+    }
+    h1 {
+      font-weight: 700;
+      font-size: 2.1rem;
+      margin: 0 0 8px 0;
+      letter-spacing: -0.8px;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, #B7BDBF 0%, #8A9298 70%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.7);
+      filter: drop-shadow(0 2px 4px #00000050);
+    }
+    #top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto 20px auto;
+      justify-content: center;
+    }
+    #show-tree-btn, #manual-map-btn {
+      background: #161B21;
+      border: 1px solid #5C5F64;
+      color: #D0D4D8;
+      padding: 11px 22px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      background: #1D232A;
+      border-color: #4A4E54;
+    }
+    #show-tree-btn:hover, #manual-map-btn:hover {
+      background: #2A3139;
+      border-color: #8B7A6B;
+      color: #EAE6E0;
+      transform: translateY(-1px);
+    }
+    #feeling-input {
+      flex: 2;
+      min-width: 280px;
+      padding: 12px 22px;
+      font-size: 0.95rem;
+      border: 1px solid #3B4047;
+      border-radius: 2px;
+      background: #0E1318;
+      outline: none;
+      transition: all 0.2s;
+      font-weight: 500;
+      color: #D3D8DD;
+      letter-spacing: 0.2px;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.6);
+    }
+    #feeling-input:focus {
+      border-color: #8B6F5E;
+      box-shadow: 0 0 0 2px rgba(155, 110, 75, 0.25), inset 0 1px 5px black;
+      background: #11171E;
+      color: #F0EEE6;
+    }
+    #submit-btn {
+      background: #2F2A25;
+      color: #DBD5CD;
+      border: 1px solid #5E5245;
+      padding: 12px 28px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.7);
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      background: #2B2A28;
+    }
+    #submit-btn:hover {
+      background: #3E3A34;
+      border-color: #8B7355;
+      color: #FAF7F2;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.8);
+    }
+    .manual-input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto 8px auto;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    #manual-word-input {
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      background: #0E1318;
+      border: 1px solid #3B4047;
+      color: #D3D8DD;
+      border-radius: 2px;
+      min-width: 220px;
+      outline: none;
+      transition: 0.2s;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.6);
+    }
+    #manual-word-input:focus {
+      border-color: #8B6F5E;
+      background: #11171E;
+    }
+    #lookup-btn {
+      background: #1D232A;
+      border: 1px solid #4A4E54;
+      color: #D0D4D8;
+      padding: 10px 18px;
+      font-weight: 600;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.7);
+    }
+    #lookup-btn:hover {
+      background: #2A3139;
+      border-color: #8B7A6B;
+      color: #EAE6E0;
+    }
+    #manual-feedback {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto 18px auto;
+      text-align: center;
+      color: #C0B6A6;
+      font-weight: 500;
+      font-size: 0.9rem;
+      min-height: 24px;
+      background: rgba(10,14,18,0.8);
+      backdrop-filter: blur(8px);
+      padding: 6px 12px;
+      border-radius: 2px;
+      border: 1px solid #3E4349;
+      display: none; /* Hidden by default */
+      transition: all 0.3s ease;
+    }
+    #main-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+    #main-container.side-by-side {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+    #tree-panel {
+      flex: 0 0 240px;
+      width: 240px;
+      background: rgba(10, 14, 18, 0.97);
+      backdrop-filter: blur(12px);
+      border-radius: 2px;
+      padding: 20px 12px;
+      box-shadow: 0 20px 30px -15px black;
+      max-height: 580px;
+      overflow-y: auto;
+      border: 1px solid #3E4349;
+    }
+    #emotions-tree {
+      font-size: 0.8rem;
+      color: #B3B9BF;
+    }
+    #emotions-tree h3 {
+      font-size: 1.1rem;
+      margin: 0 0 18px 0;
+      color: #ACA197;
+      font-weight: 700;
+      border-left: 4px solid #7A6A5C;
+      padding-left: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    #emotions-tree ul {
+      margin: 6px 0 10px 0;
+      padding-left: 16px;
+    }
+    #emotions-tree li {
+      margin-bottom: 8px;
+      line-height: 1.45;
+      color: #A0A4A8;
+    }
+    .tree-primary {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #CFC5B6;
+      letter-spacing: 0.3px;
+    }
+    #wheel-column {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    #wheel-container {
+      position: relative;
+      width: 560px;
+      height: 560px;
+      filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.8));
+    }
+    canvas {
+      border-radius: 50%;
+      background: #0C1014;
+      transition: all 0.08s linear;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+      box-shadow: 0 0 0 2px #3A3E44, 0 16px 36px black;
+    }
+    #intensity-scale {
+      background: rgba(14, 17, 22, 0.9);
+      backdrop-filter: blur(16px);
+      padding: 12px 28px;
+      border-radius: 2px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.7);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+      border: 1px solid #4E5358;
+    }
+    #intensity-scale strong {
+      font-size: 0.9rem;
+      color: #B7A797;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      margin-top: 10px;
+    }
+    .slider-container span {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #9E8C7C;
+    }
+    input[type="range"] {
+      width: 250px;
+      accent-color: #8B7355;
+      background: #1F262D;
+      height: 4px;
+      border-radius: 2px;
+    }
+    #info, #path {
+      text-align: center;
+      font-weight: 600;
+    }
+    #info {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: #0C1116dd;
+      display: inline-block;
+      padding: 6px 26px;
+      border-radius: 2px;
+      color: #D1C7BA;
+      backdrop-filter: blur(16px);
+      margin-top: 6px;
+      border: 1px solid #3B4147;
+      letter-spacing: -0.2px;
+    }
+    #path {
+      font-size: 0.8rem;
+      color: #9A9990;
+      background: #11161C;
+      padding: 5px 15px;
+      border-radius: 2px;
+      font-weight: 500;
+      border: 1px solid #2F343A;
+    }
+    @media (max-width: 1050px) {
+      #main-container.side-by-side {
+        flex-direction: column;
+        align-items: center;
+      }
+      #tree-panel {
+        order: 2;
+        width: 100%;
+        max-width: 560px;
+        margin-top: 18px;
+      }
+      #wheel-column {
+        order: 1;
+      }
+    }
+    @media (max-width: 700px) {
+      #wheel-container {
+        width: 440px;
+        height: 440px;
+      }
+      canvas {
+        width: 440px;
+        height: 440px;
+      }
+    }
+    @media (max-width: 520px) {
+      #wheel-container {
+        width: 340px;
+        height: 340px;
+      }
+      canvas {
+        width: 340px;
+        height: 340px;
+      }
+    }
+  </style>
+</head>
+<body>
+<h1>SOVEREIGN COMPASS</h1>
+
+<div id="top-bar">
+  <button id="show-tree-btn">◈ BLUEPRINT</button>
+  <button id="manual-map-btn">◈ MANUAL VECTOR</button>
+  <input type="text" id="feeling-input" placeholder="Anxious and excited are the same engine. Different story. Which story are you telling?" autocomplete="off">
+  <button id="submit-btn">⛓ LOG CONTRACT</button>
+</div>
+
+<div class="manual-input-row" id="manual-row" style="display: none;">
+  <input type="text" id="manual-word-input" placeholder="type emotion word (e.g. terrible, perplexed)" autocomplete="off">
+  <button id="lookup-btn">⟳ MAP & PERSIST</button>
+</div>
+<div id="manual-feedback"></div>
+
+<div id="main-container" class="side-by-side">
+  <div id="wheel-column">
+    <div id="wheel-container">
+      <canvas id="canvas" width="560" height="560"></canvas>
+    </div>
+    <div id="intensity-scale">
+      <strong>◈ INTENSITY · 1 (signal) → 5 (command) ◈</strong>
+      <div class="slider-container">
+        <span>1</span>
+        <input type="range" id="intensity-slider" min="1" max="5" value="3" step="1">
+        <span>5</span>
+      </div>
+      <div id="intensity-value">calibration: <span id="selected-value">3</span></div>
+    </div>
+    <div id="info">◈ hover or click · rewrite the reflex ◈</div>
+    <div id="path">primary → secondary → leaf · leaf click = select / deselect · center = ascend</div>
+  </div>
+  <div id="tree-panel"><div style="text-align:center; padding:28px 8px; color:#7E807A;"><h3 style="margin:0 0 8px; color:#9A9386;">◈ TACTICAL TREE</h3><small>(concealed)</small><br><span style="font-size:11px;">click blueprint to reveal</span></div></div>
+</div>
+
+<script>
+(function() {
+  // ---------- EMOTION MAPPING (word -> primary vector) ----------
+  const emotionWordMap = new Map([
+    ["perplexed", "Surprised"], ["skeptical", "Angry"], ["disillusioned", "Surprised"],
+    ["neutral", "Neutral"], ["balanced", "Neutral"], ["calm", "Neutral"], ["stable", "Neutral"],
+    ["observant", "Neutral"], ["aware", "Neutral"], ["open", "Neutral"],
+    ["happy", "Happy"], ["optimistic", "Happy"], ["inspired", "Happy"], ["hopeful", "Happy"],
+    ["trusting", "Happy"], ["intimate", "Happy"], ["sensitive", "Happy"], ["peaceful", "Happy"],
+    ["thankful", "Happy"], ["loving", "Happy"], ["powerful", "Happy"], ["creative", "Happy"],
+    ["courageous", "Happy"], ["accepted", "Happy"], ["valued", "Happy"], ["respected", "Happy"],
+    ["proud", "Happy"], ["confident", "Happy"], ["successful", "Happy"], ["interested", "Happy"],
+    ["inquisitive", "Happy"], ["curious", "Happy"], ["content", "Happy"], ["joyful", "Happy"],
+    ["free", "Happy"], ["playful", "Happy"], ["aroused", "Happy"], ["cheeky", "Happy"],
+    ["surprised", "Surprised"], ["excited", "Surprised"], ["eager", "Surprised"], ["amazed", "Surprised"],
+    ["awe", "Surprised"], ["astonished", "Surprised"], ["confused", "Surprised"], ["startled", "Surprised"],
+    ["dismayed", "Surprised"], ["shocked", "Surprised"],
+    ["fearful", "Fearful"], ["scared", "Fearful"], ["helpless", "Fearful"], ["frightened", "Fearful"],
+    ["anxious", "Fearful"], ["overwhelmed", "Fearful"], ["worried", "Fearful"], ["insecure", "Fearful"],
+    ["inadequate", "Fearful"], ["inferior", "Fearful"], ["weak", "Fearful"], ["worthless", "Fearful"],
+    ["insignificant", "Fearful"], ["rejected", "Fearful"], ["excluded", "Fearful"], ["persecuted", "Fearful"],
+    ["threatened", "Fearful"], ["nervous", "Fearful"], ["exposed", "Fearful"],
+    ["angry", "Angry"], ["let down", "Angry"], ["betrayed", "Angry"], ["resentful", "Angry"],
+    ["humiliated", "Angry"], ["disrespected", "Angry"], ["ridiculed", "Angry"], ["bitter", "Angry"],
+    ["indignant", "Angry"], ["violated", "Angry"], ["mad", "Angry"], ["furious", "Angry"],
+    ["jealous", "Angry"], ["aggressive", "Angry"], ["provoked", "Angry"], ["hostile", "Angry"],
+    ["frustrated", "Angry"], ["infuriated", "Angry"], ["annoyed", "Angry"], ["distant", "Angry"],
+    ["withdrawn", "Angry"], ["numb", "Angry"], ["critical", "Angry"], ["sceptical", "Angry"],
+    ["dismissive", "Angry"],
+    ["sad", "Sad"], ["hurt", "Sad"], ["embarrassed", "Sad"], ["disappointed", "Sad"],
+    ["depressed", "Sad"], ["empty", "Sad"], ["guilty", "Sad"], ["remorseful", "Sad"],
+    ["ashamed", "Sad"], ["despair", "Sad"], ["grief", "Sad"], ["powerless", "Sad"],
+    ["vulnerable", "Sad"], ["victimised", "Sad"], ["fragile", "Sad"], ["lonely", "Sad"],
+    ["isolated", "Sad"], ["abandoned", "Sad"],
+    ["disgusted", "Disgusted"], ["disapproving", "Disgusted"], ["judgmental", "Disgusted"],
+    ["uncomfortable", "Disgusted"], ["appalled", "Disgusted"], ["revolted", "Disgusted"],
+    ["awful", "Disgusted"], ["nauseated", "Disgusted"], ["detestable", "Disgusted"],
+    ["repelled", "Disgusted"], ["horrified", "Disgusted"], ["hesitant", "Disgusted"],
+    ["bad", "Bad"], ["terrible", "Bad"], ["tired", "Bad"], ["unfocused", "Bad"],
+    ["sleepy", "Bad"], ["stressed", "Bad"], ["out of control", "Bad"], ["busy", "Bad"],
+    ["rushed", "Bad"], ["pressured", "Bad"], ["bored", "Bad"], ["apathetic", "Bad"],
+    ["indifferent", "Bad"]
+  ]);
+
+  const emotionDescriptions = {
+    "Neutral": "I don't have a strong feeling either way.",
+    "Happy": "I feel good and content.",
+    "Surprised": "I didn't expect this to happen.",
+    "Fearful": "I am afraid of something.",
+    "Angry": "I am very displeased or hostile.",
+    "Sad": "I feel unhappy or sorrowful.",
+    "Disgusted": "I find this repulsive or offensive.",
+    "Bad": "I feel unpleasant or low quality."
+  };
+
+  // ---------- WHEEL DATA ----------
+  const wheelData = [ /* ... same as original ... */ 
+    { name: "Neutral", color: "#4B5358", children: [
+      { name: "Balanced", color: "#5A6268", children: ["Calm", "Stable"] },
+      { name: "Observant", color: "#697278", children: ["Aware", "Open"] }
+    ]},
+    { name: "Happy", color: "#3D4F3F", children: [
+      { name: "Optimistic", color: "#4B5E4D", children: ["Inspired", "Hopeful"] },
+      { name: "Trusting", color: "#5A6D5C", children: ["Intimate", "Sensitive"] },
+      { name: "Peaceful", color: "#687C6A", children: ["Thankful", "Loving"] },
+      { name: "Powerful", color: "#778B79", children: ["Creative", "Courageous"] },
+      { name: "Accepted", color: "#869A88", children: ["Valued", "Respected"] },
+      { name: "Proud", color: "#95A997", children: ["Confident", "Successful"] },
+      { name: "Interested", color: "#A4B8A6", children: ["Inquisitive", "Curious"] },
+      { name: "Content", color: "#B3C7B5", children: ["Joyful", "Free"] },
+      { name: "Playful", color: "#9DB0A0", children: ["Aroused", "Cheeky"] }
+    ]},
+    { name: "Surprised", color: "#5E5243", children: [
+      { name: "Excited", color: "#6E6150", children: ["Eager", "Amazed"] },
+      { name: "Amazed", color: "#7F715E", children: ["Awe", "Astonished"] },
+      { name: "Confused", color: "#8F816C", children: ["Perplexed", "Disillusioned"] },
+      { name: "Startled", color: "#9F917A", children: ["Dismayed", "Shocked"] }
+    ]},
+    { name: "Fearful", color: "#4A4148", children: [
+      { name: "Scared", color: "#5A4F57", children: ["Helpless", "Frightened"] },
+      { name: "Anxious", color: "#6A5D66", children: ["Overwhelmed", "Worried"] },
+      { name: "Insecure", color: "#7A6C75", children: ["Inadequate", "Inferior"] },
+      { name: "Weak", color: "#8A7A84", children: ["Worthless", "Insignificant"] },
+      { name: "Rejected", color: "#9A8993", children: ["Excluded", "Persecuted"] },
+      { name: "Threatened", color: "#AA98A2", children: ["Nervous", "Exposed"] }
+    ]},
+    { name: "Angry", color: "#4F3A38", children: [
+      { name: "Let down", color: "#5F4946", children: ["Betrayed", "Resentful"] },
+      { name: "Humiliated", color: "#6F5855", children: ["Disrespected", "Ridiculed"] },
+      { name: "Bitter", color: "#7F6763", children: ["Indignant", "Violated"] },
+      { name: "Mad", color: "#8F7672", children: ["Furious", "Jealous"] },
+      { name: "Aggressive", color: "#9F8580", children: ["Provoked", "Hostile"] },
+      { name: "Frustrated", color: "#AF948F", children: ["Infuriated", "Annoyed"] },
+      { name: "Distant", color: "#BFA39E", children: ["Withdrawn", "Numb"] },
+      { name: "Critical", color: "#CFB2AD", children: ["Sceptical", "Dismissive"] }
+    ]},
+    { name: "Sad", color: "#3D4A5C", children: [
+      { name: "Hurt", color: "#4C5A6D", children: ["Embarrassed", "Disappointed"] },
+      { name: "Depressed", color: "#5B6A7E", children: ["Inferior", "Empty"] },
+      { name: "Guilty", color: "#6A7A8F", children: ["Remorseful", "Ashamed"] },
+      { name: "Despair", color: "#798AA0", children: ["Grief", "Powerless"] },
+      { name: "Vulnerable", color: "#889AB1", children: ["Victimised", "Fragile"] },
+      { name: "Lonely", color: "#97AAC2", children: ["Isolated", "Abandoned"] }
+    ]},
+    { name: "Disgusted", color: "#3F4E44", children: [
+      { name: "Disapproving", color: "#4E5E53", children: ["Judgmental", "Embarrassed"] },
+      { name: "Uncomfortable", color: "#5D6E62", children: ["Appalled", "Revolted"] },
+      { name: "Awful", color: "#6C7E71", children: ["Nauseated", "Detestable"] },
+      { name: "Repelled", color: "#7B8E80", children: ["Horrified", "Hesitant"] }
+    ]},
+    { name: "Bad", color: "#4E5255", children: [
+      { name: "Tired", color: "#5D6266", children: ["Unfocused", "Sleepy"] },
+      { name: "Stressed", color: "#6C7277", children: ["Out of control", "Overwhelmed"] },
+      { name: "Busy", color: "#7B8288", children: ["Rushed", "Pressured"] },
+      { name: "Bored", color: "#8A9299", children: ["Apathetic", "Indifferent"] }
+    ]}
+  ];
+
+  const placeholders = [
+    "Does this feeling serve your trajectory? Or is it a ghost from old scripts?",
+    "Anxiety and excitment are the same engine. Choose your own narrative.",
+	"If a camera is on you right now, would you process your emotion differently?",
+    "You cannot change your habits without changing what you value more.",
+    "Confrontation is a necessary ladder, choose your battles wisely.",
+	"Is your emotion working for you? Or would you rather feel something else?",
+    "What would the highest version of you do with this signal? Act."
+  ];
+  let placeholderIndex = 0;
+  const input = document.getElementById('feeling-input');
+  function rotatePlaceholder() {
+    if(input) {
+      input.placeholder = placeholders[placeholderIndex];
+      placeholderIndex = (placeholderIndex + 1) % placeholders.length;
+    }
+  }
+  setInterval(rotatePlaceholder, 4800);
+  rotatePlaceholder();
+
+  let currentLevel = 1;
+  let selectedEmotion = {
+    primary: null,
+    sub: null,
+    leafName: null
+  };
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  let cw = 560, ch = 560;
+  canvas.width = cw; canvas.height = ch;
+  const centerX = cw/2, centerY = ch/2;
+  const MAX_RADIUS = 268;
+
+  function getRingLayout() {
+    if (currentLevel === 1) return { inner: 0, outer: MAX_RADIUS };
+    if (currentLevel === 2) return { centerInner: 0, centerOuter: 78, ringInner: 78, ringOuter: MAX_RADIUS };
+    return { centerInner: 0, centerOuter: 54, midInner: 54, midOuter: 116, ringInner: 116, ringOuter: MAX_RADIUS };
+  }
+
+  function getSelectedPath() {
+    if (!selectedEmotion.primary) return "⛓ no active anchor";
+    let path = selectedEmotion.primary.name;
+    if (selectedEmotion.sub) {
+      path += ` → ${selectedEmotion.sub.name}`;
+      if (selectedEmotion.leafName) path += ` → ${selectedEmotion.leafName}`;
+    }
+    return path;
+  }
+
+  function updateSelectionDisplay() {
+    const infoDiv = document.getElementById('info');
+    const pathDiv = document.getElementById('path');
+    if (selectedEmotion.primary) {
+      let mainDisplay = selectedEmotion.leafName || (selectedEmotion.sub ? selectedEmotion.sub.name : selectedEmotion.primary.name);
+      infoDiv.innerHTML = `◈ ${mainDisplay} ◈ <span style="font-size:0.7rem; color:#A89F91;">(pact active)</span>`;
+      pathDiv.innerHTML = `⛓ ${getSelectedPath()}  — center to ascend`;
+    } else {
+      infoDiv.innerHTML = `◈ navigate primary → secondary → leaf · select your truth ◈`;
+      pathDiv.innerHTML = `primary cluster → sub-variant → leaf (click leaf to lock)`;
+    }
+  }
+
+  function getContrastText(hex) {
+    let r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    let brightness = (r * 0.299 + g * 0.587 + b * 0.114);
+    return brightness > 135 ? "#0E1216" : "#E3DFD8";
+  }
+
+  function shadeColorLight(hex, percent) {
+    let r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    r = Math.min(255, Math.max(0, r + percent));
+    g = Math.min(255, Math.max(0, g + percent));
+    b = Math.min(255, Math.max(0, b + percent));
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  }
+
+  function isAngleInRange(angle, start, end) {
+    const tau = Math.PI * 2;
+    let s = ((start % tau) + tau) % tau;
+    let e = ((end % tau) + tau) % tau;
+    if (s < e) return angle >= s && angle < e;
+    return angle >= s || angle < e;
+  }
+
+  function drawWheel(mx = null, my = null) {
+    ctx.clearRect(0, 0, cw, ch);
+    const layout = getRingLayout();
+    let mouseDist = 0, mouseAngle = 0;
+    if (mx !== null && my !== null) {
+      const dx = mx - centerX, dy = my - centerY;
+      mouseDist = Math.hypot(dx, dy);
+      mouseAngle = Math.atan2(dy, dx);
+      if (mouseAngle < 0) mouseAngle += Math.PI * 2;
+    }
+
+    if (currentLevel === 1) {
+      const pAngle = (Math.PI * 2) / wheelData.length;
+      let start = -Math.PI / 2;
+      for (let i = 0; i < wheelData.length; i++) {
+        const end = start + pAngle;
+        const primary = wheelData[i];
+        const isHovered = (mx !== null && mouseDist <= layout.outer && isAngleInRange(mouseAngle, start, end));
+        ctx.globalAlpha = isHovered ? 1.0 : 0.9;
+        ctx.fillStyle = primary.color;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, layout.outer, start, end);
+        ctx.lineTo(centerX, centerY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = "#5A5E63";
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        let fontSize = isHovered ? 21 : 18;
+        ctx.font = `700 ${fontSize}px 'Inter', 'Segoe UI', system-ui`;
+        const textAngle = start + pAngle / 2;
+        const textRadius = layout.outer * 0.62;
+        ctx.fillStyle = getContrastText(primary.color);
+        ctx.shadowColor = "black";
+        ctx.shadowBlur = 4;
+        ctx.fillText(primary.name, centerX + Math.cos(textAngle) * textRadius, centerY + Math.sin(textAngle) * textRadius);
+        ctx.restore();
+        start = end;
+      }
+    } else if (currentLevel === 2) {
+      const primary = selectedEmotion.primary;
+      const isCenterHovered = (mx !== null && mouseDist <= layout.centerOuter);
+      ctx.globalAlpha = isCenterHovered ? 1 : 0.94;
+      ctx.fillStyle = primary.color;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, layout.centerOuter, 0, Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = "#6A6258";
+      ctx.lineWidth = 2.8;
+      ctx.stroke();
+      ctx.fillStyle = getContrastText(primary.color);
+      ctx.font = "bold 15px 'Inter'";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(primary.name, centerX, centerY);
+      
+      const subCount = primary.children.length;
+      const sliceAngle = (Math.PI*2)/subCount;
+      let start = -Math.PI/2;
+      for(let j=0;j<subCount;j++) {
+        const end = start+sliceAngle;
+        const sub = primary.children[j];
+        const isHovered = (mx!==null && mouseDist > layout.ringInner && mouseDist <= layout.ringOuter && isAngleInRange(mouseAngle,start,end));
+        ctx.globalAlpha = isHovered ? 1.0 : 0.9;
+        ctx.fillStyle = sub.color;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, layout.ringOuter, start, end);
+        ctx.arc(centerX, centerY, layout.ringInner, end, start, true);
+        ctx.fill();
+        ctx.strokeStyle = "#4E5358";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.save();
+        ctx.font = isHovered ? "bold 19px 'Inter'" : "600 16px 'Inter'";
+        ctx.fillStyle = getContrastText(sub.color);
+        ctx.shadowBlur = 2;
+        const textAngle = start+sliceAngle/2;
+        const textRadius = (layout.ringInner+layout.ringOuter)/2;
+        ctx.fillText(sub.name, centerX+Math.cos(textAngle)*textRadius, centerY+Math.sin(textAngle)*textRadius);
+        ctx.restore();
+        start = end;
+      }
+    } else if (currentLevel === 3) {
+      const primary = selectedEmotion.primary;
+      const sub = selectedEmotion.sub;
+      ctx.fillStyle = primary.color;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, layout.centerOuter, 0, Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = "#6A5E52";
+      ctx.lineWidth = 2.4;
+      ctx.stroke();
+      ctx.fillStyle = getContrastText(primary.color);
+      ctx.font = "bold 12px 'Inter'";
+      ctx.fillText(primary.name, centerX, centerY-6);
+      
+      const isMidHovered = (mx!==null && mouseDist > layout.midInner && mouseDist <= layout.midOuter);
+      ctx.globalAlpha = isMidHovered ? 1.0 : 0.93;
+      ctx.fillStyle = sub.color;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, layout.midOuter, 0, Math.PI*2);
+      ctx.arc(centerX, centerY, layout.midInner, Math.PI*2, 0, true);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = getContrastText(sub.color);
+      ctx.font = "bold 13px 'Inter'";
+      ctx.fillText(sub.name, centerX, centerY+12);
+      
+      const leafCount = sub.children.length;
+      const sliceAngle = (Math.PI*2)/leafCount;
+      let start = -Math.PI/2;
+      for(let k=0;k<leafCount;k++) {
+        const end = start+sliceAngle;
+        const leafName = sub.children[k];
+        const isSelected = (selectedEmotion.leafName === leafName);
+        const isHovered = (mx!==null && mouseDist > layout.ringInner && mouseDist <= layout.ringOuter && isAngleInRange(mouseAngle,start,end));
+        let sliceColor = shadeColorLight(sub.color, isSelected ? 38 : 20);
+        ctx.globalAlpha = isSelected ? 1.0 : (isHovered ? 0.97 : 0.88);
+        ctx.fillStyle = sliceColor;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, layout.ringOuter, start, end);
+        ctx.arc(centerX, centerY, layout.ringInner, end, start, true);
+        ctx.fill();
+        ctx.strokeStyle = "#776B5D";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        if(isSelected) {
+          ctx.save();
+          ctx.strokeStyle = "#BBA68C";
+          ctx.lineWidth = 3.5;
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, layout.ringOuter-3, start, end);
+          ctx.stroke();
+          ctx.restore();
+        }
+        ctx.save();
+        let leafFontSize = isSelected ? 19 : (isHovered ? 18 : 15);
+        ctx.font = `${isSelected ? '800' : '600'} ${leafFontSize}px 'Inter'`;
+        ctx.fillStyle = getContrastText(sliceColor);
+        ctx.shadowBlur = 2;
+        const textAngle = start+sliceAngle/2;
+        const textRadius = (layout.ringInner+layout.ringOuter)/2;
+        ctx.fillText(leafName, centerX+Math.cos(textAngle)*textRadius, centerY+Math.sin(textAngle)*textRadius);
+        ctx.restore();
+        start = end;
+      }
+    }
+  }
+
+  function onCanvasClick(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    let mouseX = (e.clientX - rect.left) * scaleX;
+    let mouseY = (e.clientY - rect.top) * scaleY;
+    const dx = mouseX - centerX, dy = mouseY - centerY;
+    const dist = Math.hypot(dx, dy);
+    if(dist > MAX_RADIUS) return;
+    let angle = Math.atan2(dy, dx);
+    if(angle<0) angle += Math.PI*2;
+    const layout = getRingLayout();
+
+    if(currentLevel === 1) {
+      const pAngle = (Math.PI*2)/wheelData.length;
+      let start = -Math.PI/2;
+      for(let i=0;i<wheelData.length;i++) {
+        if(isAngleInRange(angle, start, start+pAngle)) {
+          selectedEmotion.primary = wheelData[i];
+          currentLevel = 2;
+          break;
+        }
+        start+=pAngle;
+      }
+    } else if(currentLevel === 2) {
+      if(dist <= layout.centerOuter) {
+        selectedEmotion.primary = null;
+        currentLevel = 1;
+      } else if(dist > layout.ringInner) {
+        const subCount = selectedEmotion.primary.children.length;
+        const sliceAngle = (Math.PI*2)/subCount;
+        let start = -Math.PI/2;
+        for(let j=0;j<subCount;j++) {
+          if(isAngleInRange(angle, start, start+sliceAngle)) {
+            selectedEmotion.sub = selectedEmotion.primary.children[j];
+            currentLevel = 3;
+            break;
+          }
+          start+=sliceAngle;
+        }
+      }
+    } else if(currentLevel === 3) {
+      if(dist <= layout.midOuter) {
+        selectedEmotion.sub = null;
+        selectedEmotion.leafName = null;
+        currentLevel = 2;
+      } else if(dist > layout.ringInner) {
+        const leafCount = selectedEmotion.sub.children.length;
+        const sliceAngle = (Math.PI*2)/leafCount;
+        let start = -Math.PI/2;
+        for(let k=0;k<leafCount;k++) {
+          if(isAngleInRange(angle, start, start+sliceAngle)) {
+            const targetLeaf = selectedEmotion.sub.children[k];
+            if(selectedEmotion.leafName === targetLeaf) {
+              selectedEmotion.leafName = null;
+            } else {
+              selectedEmotion.leafName = targetLeaf;
+            }
+            break;
+          }
+          start+=sliceAngle;
+        }
+      }
+    }
+    updateSelectionDisplay();
+    drawWheel(mouseX, mouseY);
+  }
+
+  function onCanvasMove(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width/rect.width;
+    const scaleY = canvas.height/rect.height;
+    let mouseX = (e.clientX - rect.left)*scaleX;
+    let mouseY = (e.clientY - rect.top)*scaleY;
+    drawWheel(mouseX, mouseY);
+  }
+  function onCanvasLeave() { drawWheel(); }
+
+  canvas.addEventListener('click', onCanvasClick);
+  canvas.addEventListener('mousemove', onCanvasMove);
+  canvas.addEventListener('mouseleave', onCanvasLeave);
+
+  function initIntensitySlider() {
+    const s = document.getElementById('intensity-slider');
+    const v = document.getElementById('selected-value');
+    if(s && v) { 
+      s.addEventListener('input', () => v.textContent = s.value); 
+      v.textContent = s.value; 
+    }
+  }
+
+  function buildEmotionsTree() {
+    let html = `<h3>◈ TACTICAL BLUEPRINT ◈</h3><ul style="list-style:none;">`;
+    wheelData.forEach(primary => {
+      html += `<li><div class="tree-primary">${primary.name}</div><ul style="padding-left:18px;">`;
+      primary.children.forEach(sub => {
+        html += `<li><span style="font-weight:700; color:#B9AFA0;">${sub.name}</span><ul style="padding-left:16px;">`;
+        sub.children.forEach(leaf => { html += `<li style="color:#8C8980;">⛓ ${leaf}</li>`; });
+        html += `</ul></li>`;
+      });
+      html += `</ul></li>`;
+    });
+    html += `</ul>`;
+    return html;
+  }
+
+  function initTreePanel() {
+    const btn = document.getElementById('show-tree-btn');
+    const panel = document.getElementById('tree-panel');
+    let visible = false;
+    if(panel && btn) {
+      panel.innerHTML = `<div style="text-align:center; padding:28px 8px; color:#8E8B81;"><h3 style="margin:0 0 8px; color:#9A9386;">◈ BLUEPRINT</h3><small>(concealed)</small><br><span style="font-size:11px;">unlock tactical map</span></div>`;
+      btn.addEventListener('click', () => {
+        visible = !visible;
+        if (visible) { 
+          panel.innerHTML = `<div id="emotions-tree">${buildEmotionsTree()}</div>`; 
+          btn.innerHTML = "◈ HIDE BLUEPRINT"; 
+        } else { 
+          panel.innerHTML = `<div style="text-align:center; padding:28px 8px; color:#8E8B81;"><h3 style="margin:0 0 8px; color:#9A9386;">◈ BLUEPRINT</h3><small>(concealed)</small><br><span style="font-size:11px;">strategic view</span></div>`; 
+          btn.innerHTML = "◈ BLUEPRINT"; 
+        }
+      });
+    }
+  }
+
+  // ---------- MANUAL VECTOR LOGIC ----------
+  const manualRow = document.getElementById('manual-row');
+  const manualWordInput = document.getElementById('manual-word-input');
+  const lookupBtn = document.getElementById('lookup-btn');
+  const manualFeedback = document.getElementById('manual-feedback');
+  const manualMapBtn = document.getElementById('manual-map-btn');
+
+  manualMapBtn.addEventListener('click', () => {
+    const isHidden = manualRow.style.display === 'none' || manualRow.style.display === '';
+
+    if (isHidden) {
+      manualRow.style.display = 'flex';
+      manualFeedback.style.display = 'block';
+      manualMapBtn.textContent = '◈ HIDE VECTOR';
+    } else {
+      manualRow.style.display = 'none';
+      manualFeedback.style.display = 'none';
+      manualFeedback.innerHTML = ''; // clear content
+      manualMapBtn.textContent = '◈ MANUAL VECTOR';
+    }
+  });
+
+  function findPrimaryByName(name) {
+    return wheelData.find(p => p.name.toLowerCase() === name.toLowerCase()) || null;
+  }
+
+  function applyManualVector(primaryName) {
+    const primary = findPrimaryByName(primaryName);
+    if (!primary) {
+      manualFeedback.textContent = `⚠️ Vector "${primaryName}" not found in wheel.`;
+      return false;
+    }
+    selectedEmotion.primary = primary;
+    selectedEmotion.sub = null;
+    selectedEmotion.leafName = null;
+    currentLevel = 2;
+    updateSelectionDisplay();
+    drawWheel();
+    const desc = emotionDescriptions[primary.name] || `${primary.name}: a primary emotional cluster.`;
+    manualFeedback.innerHTML = `✓ <strong>${primary.name}</strong>: "${desc}" — vector persisted.`;
+    return true;
+  }
+
+  lookupBtn.addEventListener('click', () => {
+    const rawWord = manualWordInput.value.trim();
+    if (!rawWord) {
+      manualFeedback.textContent = 'Enter an emotion word.';
+      return;
+    }
+    const lowerWord = rawWord.toLowerCase();
+    const mappedPrimary = emotionWordMap.get(lowerWord);
+    if (mappedPrimary) {
+      applyManualVector(mappedPrimary);
+    } else {
+      manualFeedback.textContent = `"${rawWord}" not mapped. Try e.g. terrible, perplexed, joyful.`;
+    }
+  });
+
+  manualWordInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') lookupBtn.click();
+  });
+
+document.getElementById('submit-btn').addEventListener('click', async () => {
+    const narrative = document.getElementById('feeling-input').value.trim();
+    const intensity = parseInt(document.getElementById('selected-value').textContent);
+
+    let emotionPath = "no pact selected";
+    let primary = null, secondary = null, leaf = null;
+
+    if (selectedEmotion.primary) {
+        primary = selectedEmotion.primary.name;
+        emotionPath = primary;
+        if (selectedEmotion.sub) {
+            secondary = selectedEmotion.sub.name;
+            emotionPath += ` → ${secondary}`;
+            if (selectedEmotion.leafName) {
+                leaf = selectedEmotion.leafName;
+                emotionPath += ` → ${leaf}`;
+            }
+        }
+    }
+
+    const payload = {
+        user_id: "patrick-main",           // you can make this dynamic later
+        primary_emotion: primary,
+        secondary_emotion: secondary,
+        leaf_emotion: leaf,
+        emotion_path: emotionPath,
+        narrative: narrative || "No narrative provided",
+        intensity: intensity,
+        device_info: {
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+        }
+    };
+
+    try {
+        const response = await fetch('https://sovereign-compass.patricklau-wc.workers.dev/api/log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert(`✅ ULYSSES PACT LOGGED SUCCESSFULLY!\n\n${emotionPath}\nIntensity: ${intensity}\n\nSaved to your private database.`);
+        } else {
+            alert('Failed to save: ' + (result.error || 'Unknown error'));
+        }
+    } catch (err) {
+        alert('Connection error. Pact not saved.');
+        console.error(err);
+    }
+});
+
+  drawWheel();
+  initIntensitySlider();
+  initTreePanel();
+  updateSelectionDisplay();
+})();
+</script>
+</body>
+</html>
+`;

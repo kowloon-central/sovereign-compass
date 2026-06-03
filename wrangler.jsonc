@@ -1,8 +1,8 @@
 {
     "$schema": "node_modules/wrangler/config-schema.json",
     "name": "sovereign-compass",
-    // "main": "worker.js",     ← Comment this out (or delete) for Pages deploy
-    "pages_build_output_dir": ".",
+    "main": "worker.js",                    
+    "pages_build_output_dir": ".",       
     "compatibility_date": "2026-06-03",
     "observability": {
         "enabled": true
