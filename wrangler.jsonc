@@ -1,13 +1,11 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "sovereign-compass",
+	"main": "worker.js",  // Add this line
 	"compatibility_date": "2026-06-03",
 	"observability": {
 		"enabled": true
 	},
-	// "assets": {
-	// 	"directory": "."
-	// },
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
