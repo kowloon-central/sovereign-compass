@@ -5,9 +5,9 @@
 	"observability": {
 		"enabled": true
 	},
-	"assets": {
-		"directory": "."
-	},
+	// "assets": {           ← Comment this out
+	// 	"directory": "."
+	// },
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
