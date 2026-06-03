@@ -1,20 +1,21 @@
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "sovereign-compass",
-	"main": "worker.js",  // Add this line
-	"compatibility_date": "2026-06-03",
-	"observability": {
-		"enabled": true
-	},
-	"compatibility_flags": [
-		"nodejs_compat"
-	],
-	"d1_databases": [
-		{
-			"binding": "sovereign_compass_db",
-			"database_name": "sovereign-compass-db",
-			"database_id": "4bcce9dc-389b-445c-a1bb-6cac110a7b64",
-			"remote": true
-		}
-	]
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "sovereign-compass",
+    // "main": "worker.js",     ← Comment this out (or delete) for Pages deploy
+    "pages_build_output_dir": ".",
+    "compatibility_date": "2026-06-03",
+    "observability": {
+        "enabled": true
+    },
+    "compatibility_flags": [
+        "nodejs_compat"
+    ],
+    "d1_databases": [
+        {
+            "binding": "sovereign_compass_db",
+            "database_name": "sovereign-compass-db",
+            "database_id": "4bcce9dc-389b-445c-a1bb-6cac110a7b64",
+            "remote": true
+        }
+    ]
 }
