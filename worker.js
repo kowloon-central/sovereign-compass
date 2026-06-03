@@ -1,40 +1,34 @@
 export default {
   async fetch(request, env, ctx) {
-    // Only handle API requests - no HTML, no assets
     const url = new URL(request.url);
     
-    // CORS headers for browser requests
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     };
 
-    // Handle preflight
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // Only handle POST to /api/log
+    // Simple test endpoint
+    if (url.pathname === '/test') {
+      return new Response(JSON.stringify({ status: 'ok' }), {
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
+    }
+
+    // Your API endpoint
     if (url.pathname === '/api/log' && request.method === 'POST') {
       try {
         const data = await request.json();
         
-        console.log('Received data:', data);
-
-        // Insert into database
-        const result = await env.sovereign_compass_db.prepare(`
+        await env.sovereign_compass_db.prepare(`
           INSERT INTO moment_entries (
-            user_id, 
-            primary_emotion, 
-            secondary_emotion, 
-            leaf_emotion,
-            emotion_path, 
-            narrative, 
-            intensity,
-            created_at,
-            updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+            user_id, primary_emotion, secondary_emotion, leaf_emotion,
+            emotion_path, narrative, intensity
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
         `).bind(
           data.user_id || 'anonymous',
           data.primary_emotion,
@@ -44,32 +38,19 @@ export default {
           data.narrative || null,
           data.intensity || 3
         ).run();
-
-        return Response.json({
-          success: true,
-          message: "Entry saved successfully",
-          id: result.meta.last_row_id
-        }, {
-          status: 200,
-          headers: corsHeaders
-        });
         
-      } catch (error) {
-        console.error('Error:', error);
-        return Response.json({
-          success: false,
-          error: error.message
-        }, {
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ success: false, error: err.message }), {
           status: 500,
-          headers: corsHeaders
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
       }
     }
 
-    // Return 404 for all other routes
-    return new Response('Not found - use POST to /api/log', { 
-      status: 404,
-      headers: corsHeaders
-    });
+    return new Response('Not found', { status: 404, headers: corsHeaders });
   }
 };
