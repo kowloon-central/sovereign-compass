@@ -926,13 +926,59 @@
     if (e.key === 'Enter') lookupBtn.click();
   });
 
-  document.getElementById('submit-btn').addEventListener('click', () => {
-    const desc = document.getElementById('feeling-input').value.trim();
-    const intensity = document.getElementById('selected-value').textContent;
+document.getElementById('submit-btn').addEventListener('click', async () => {
+    const narrative = document.getElementById('feeling-input').value.trim();
+    const intensity = parseInt(document.getElementById('selected-value').textContent);
+
     let emotionPath = "no pact selected";
-    if (selectedEmotion.primary) emotionPath = getSelectedPath();
-    alert(`◈ ULYSSES PACT LOGGED ◈\nActive emotion: ${emotionPath}\nYour narrative: ${desc || "—"}\nIntensity calibration: ${intensity}\n→ You own the rewrite. Now execute.`);
-  });
+    let primary = null, secondary = null, leaf = null;
+
+    if (selectedEmotion.primary) {
+        primary = selectedEmotion.primary.name;
+        emotionPath = primary;
+        if (selectedEmotion.sub) {
+            secondary = selectedEmotion.sub.name;
+            emotionPath += ` → ${secondary}`;
+            if (selectedEmotion.leafName) {
+                leaf = selectedEmotion.leafName;
+                emotionPath += ` → ${leaf}`;
+            }
+        }
+    }
+
+    const payload = {
+        user_id: "patrick-main",           // you can make this dynamic later
+        primary_emotion: primary,
+        secondary_emotion: secondary,
+        leaf_emotion: leaf,
+        emotion_path: emotionPath,
+        narrative: narrative || "No narrative provided",
+        intensity: intensity,
+        device_info: {
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+        }
+    };
+
+    try {
+        const response = await fetch('https://sovereign-compass.patricklau-wc.workers.dev/api/log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert(`✅ ULYSSES PACT LOGGED SUCCESSFULLY!\n\n${emotionPath}\nIntensity: ${intensity}\n\nSaved to your private database.`);
+        } else {
+            alert('Failed to save: ' + (result.error || 'Unknown error'));
+        }
+    } catch (err) {
+        alert('Connection error. Pact not saved.');
+        console.error(err);
+    }
+});
 
   drawWheel();
   initIntensitySlider();
